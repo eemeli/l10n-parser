@@ -13,6 +13,9 @@ from .base import CAN_COPY, Entity, Entry, Junk, OffsetComment, Parser, Whitespa
 class DefinesInstruction(Entry):
     """Entity-like object representing processing instructions in inc files"""
 
+    raw_val: str
+    val: str
+
     def __init__(
         self,
         ctx: DefinesParser.Context,
@@ -53,7 +56,7 @@ class DefinesParser(Parser):
         Parser.__init__(self)
 
     def getNext(
-        self, ctx: DefinesParser.Context, offset: int
+        self, ctx: DefinesParser.Context, offset: int  # type:ignore[override]
     ) -> Union[DefinesInstruction, Entity, Whitespace, DefinesParser.Comment, Junk]:
         junk_offset = offset
         contents = ctx.contents

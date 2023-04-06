@@ -58,7 +58,16 @@ __all__ = [
     "PropertiesEntity",
 ]
 
-__constructors = []
+
+__constructors = [
+    ("strings.*\\.xml$", AndroidParser()),
+    ("\\.dtd$", DTDParser()),
+    ("\\.properties$", PropertiesParser()),
+    ("\\.ini$", IniParser()),
+    ("\\.inc$", DefinesParser()),
+    ("\\.ftl$", FluentParser()),
+    ("\\.pot?$", PoParser()),
+]
 
 
 def getParser(path: str) -> Parser:
@@ -73,14 +82,3 @@ def hasParser(path):
         return bool(getParser(path))
     except UserWarning:
         return False
-
-
-__constructors = [
-    ("strings.*\\.xml$", AndroidParser()),
-    ("\\.dtd$", DTDParser()),
-    ("\\.properties$", PropertiesParser()),
-    ("\\.ini$", IniParser()),
-    ("\\.inc$", DefinesParser()),
-    ("\\.ftl$", FluentParser()),
-    ("\\.pot?$", PoParser()),
-]

@@ -8,12 +8,13 @@ import re
 from html import unescape as html_unescape
 from typing import Optional, Tuple, Union
 
-from .base import Comment, Entity, Junk, Parser, Whitespace
+from .base import Comment as Comment_
+from .base import Entity, Junk, Parser, Whitespace
 
 
 class DTDEntityMixin:
     @property
-    def val(self):
+    def val(self) -> str:
         """Unescape HTML entities into corresponding Unicode characters.
 
         Named (&amp;), decimal (&#38;), and hex (&#x26; and &#x0026;) formats
@@ -24,7 +25,7 @@ class DTDEntityMixin:
 
             https://github.com/python/cpython/blob/3.7/Lib/html/entities.py
         """
-        return html_unescape(self.raw_val)
+        return html_unescape(self.raw_val)  # type: ignore
 
     def value_position(
         self, offset: Union[Tuple[int, int], int] = 0
@@ -32,7 +33,7 @@ class DTDEntityMixin:
         # DTDChecker already returns tuples of (line, col) positions
         if isinstance(offset, tuple):
             line_pos, col_pos = offset
-            line, col = super().value_position()
+            line, col = super().value_position()  # type: ignore
             if line_pos == 1:
                 col = col + col_pos
             else:
@@ -40,7 +41,7 @@ class DTDEntityMixin:
                 line += line_pos - 1
             return line, col
         else:
-            return super().value_position(offset)
+            return super().value_position(offset)  # type: ignore
 
 
 class DTDEntity(DTDEntityMixin, Entity):
@@ -83,7 +84,7 @@ class DTDParser(Parser):
         "(?:[ \t]*(?:" + XmlComment + "[ \t\r\n]*)*\n?)?"
     )
 
-    class Comment(Comment):
+    class Comment(Comment_):
         @property
         def val(self) -> str:
             if self._val_cache is None:
@@ -110,13 +111,13 @@ class DTDParser(Parser):
                 entity = DTDEntity(
                     ctx, None, None, m.span(), m.span("key"), m.span("val")
                 )
-        return entity
+        return entity  # type: ignore
 
     def createEntity(
         self,
         ctx: Parser.Context,
         m: re.Match,
-        current_comment: Optional[DTDParser.Comment],
+        current_comment: Optional[DTDParser.Comment],  # type:ignore[override]
         white_space: Optional[Whitespace],
     ) -> DTDEntity:
         valspan = m.span("val")
