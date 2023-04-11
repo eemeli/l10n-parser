@@ -2,19 +2,19 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from os.path import join
 import shutil
 import tempfile
 import textwrap
 import unittest
+from os.path import join
 
-from compare_locales import parser
+from l10n_parser import OffsetComment, Parser
 
 
 class TestParserContext(unittest.TestCase):
     def test_linecol(self):
         "Should return 1-based line and column numbers."
-        ctx = parser.Parser.Context(
+        ctx = Parser.Context(
             """first line
 second line
 third line
@@ -27,13 +27,13 @@ third line
         self.assertEqual(ctx.linecol(len(ctx.contents)), (4, 1))
 
     def test_empty_parser(self):
-        p = parser.Parser()
+        p = Parser()
         self.assertTupleEqual(tuple(p), tuple())
 
 
 class TestOffsetComment(unittest.TestCase):
     def test_offset(self):
-        ctx = parser.Parser.Context(
+        ctx = Parser.Context(
             textwrap.dedent(
                 """\
             #foo
@@ -42,7 +42,7 @@ class TestOffsetComment(unittest.TestCase):
             """
             )
         )  # noqa
-        offset_comment = parser.OffsetComment(ctx, (0, len(ctx.contents)))
+        offset_comment = OffsetComment(ctx, (0, len(ctx.contents)))
         self.assertEqual(
             offset_comment.val,
             textwrap.dedent(
@@ -58,7 +58,7 @@ class TestOffsetComment(unittest.TestCase):
 class TestUniversalNewlines(unittest.TestCase):
     def setUp(self):
         """Create a parser for this test."""
-        self.parser = parser.Parser()
+        self.parser = Parser()
         self.dir = tempfile.mkdtemp()
 
     def tearDown(self):

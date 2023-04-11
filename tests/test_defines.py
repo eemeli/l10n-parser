@@ -4,14 +4,9 @@
 
 import unittest
 
-from compare_locales.tests import ParserTestMixin
-from compare_locales.parser import (
-    Comment,
-    DefinesInstruction,
-    Junk,
-    Whitespace,
-)
+from l10n_parser import Comment, DefinesInstruction, Junk, Whitespace
 
+from . import ParserTestMixin
 
 mpl2 = """\
 # This Source Code Form is subject to the terms of the Mozilla Public
