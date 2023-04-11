@@ -4,8 +4,7 @@
 
 import unittest
 
-from compare_locales.tests import ParserTestMixin, BaseHelper
-from compare_locales.paths import File
+from compare_locales.tests import ParserTestMixin
 from compare_locales.parser import (
     Comment,
     IniSection,
@@ -239,20 +238,3 @@ Good=other string
         self._test("\n", ((Whitespace, "\n"),))
         self._test("\n\n", ((Whitespace, "\n\n"),))
         self._test(" \n\n", ((Whitespace, " \n\n"),))
-
-
-class TestChecks(BaseHelper):
-    file = File("foo.ini", "foo.ini")
-    refContent = b"""\
-[Strings]
-foo=good
-"""
-
-    def test_ok(self):
-        self._test(b"[Strings]\nfoo=other", tuple())
-
-    def test_bad_encoding(self):
-        self._test(
-            "foo=touché".encode("latin-1"),
-            (("warning", 9, "\ufffd in: foo", "encodings"),),
-        )

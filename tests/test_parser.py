@@ -2,13 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import pkg_resources
+from os.path import join
 import shutil
 import tempfile
 import textwrap
 import unittest
 
-from compare_locales import parser, mozpath
+from compare_locales import parser
 
 
 class TestParserContext(unittest.TestCase):
@@ -28,8 +28,7 @@ third line
 
     def test_empty_parser(self):
         p = parser.Parser()
-        entities = p.parse()
-        self.assertTupleEqual(entities, tuple())
+        self.assertTupleEqual(tuple(p), tuple())
 
 
 class TestOffsetComment(unittest.TestCase):
@@ -68,32 +67,8 @@ class TestUniversalNewlines(unittest.TestCase):
         shutil.rmtree(self.dir)
 
     def test_universal_newlines(self):
-        f = mozpath.join(self.dir, "file")
+        f = join(self.dir, "file")
         with open(f, "wb") as fh:
             fh.write(b"one\ntwo\rthree\r\n")
         self.parser.readFile(f)
         self.assertEqual(self.parser.ctx.contents, "one\ntwo\nthree\n")
-
-
-class TestPlugins(unittest.TestCase):
-    def setUp(self):
-        self.old_working_set_state = pkg_resources.working_set.__getstate__()
-        distribution = pkg_resources.Distribution(__file__)
-        entry_point = pkg_resources.EntryPoint.parse(
-            "test_parser = compare_locales.tests.test_parser:DummyParser",
-            dist=distribution,
-        )
-        distribution._ep_map = {"compare_locales.parsers": {"test_parser": entry_point}}
-        pkg_resources.working_set.add(distribution)
-
-    def tearDown(self):
-        pkg_resources.working_set.__setstate__(self.old_working_set_state)
-
-    def test_dummy_parser(self):
-        p = parser.getParser("some/weird/file.ext")
-        self.assertIsInstance(p, DummyParser)
-
-
-class DummyParser(parser.Parser):
-    def use(self, path):
-        return path.endswith("weird/file.ext")
