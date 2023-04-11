@@ -4,7 +4,7 @@
 
 import re
 
-from .base import Entity, OffsetComment, Whitespace, Parser
+from .base import Entity, OffsetComment, Parser, Whitespace
 
 
 class PropertiesEntityMixin:

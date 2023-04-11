@@ -8,15 +8,16 @@ from fluent.syntax import FluentParser as FTLParser
 from fluent.syntax import ast as ftl
 from fluent.syntax.serializer import serialize_comment
 from fluent.syntax.visitor import Visitor
+
 from .base import (
     CAN_SKIP,
-    Entry,
-    Entity,
     Comment,
+    Entity,
+    Entry,
     Junk,
-    Whitespace,
     LiteralEntity,
     Parser,
+    Whitespace,
 )
 
 

@@ -4,7 +4,7 @@
 
 import re
 
-from .base import CAN_COPY, Entry, OffsetComment, Junk, Whitespace, Parser
+from .base import CAN_COPY, Entry, Junk, OffsetComment, Parser, Whitespace
 
 
 class DefinesInstruction(Entry):

@@ -4,36 +4,27 @@
 
 import re
 
-from .base import (
-    CAN_NONE,
-    CAN_COPY,
-    CAN_SKIP,
-    CAN_MERGE,
-    Entry,
-    Entity,
-    Comment,
-    OffsetComment,
-    Junk,
-    Whitespace,
-    BadEntity,
-    Parser,
-)
 from .android import AndroidParser
-from .defines import DefinesParser, DefinesInstruction
+from .base import (
+    CAN_COPY,
+    CAN_MERGE,
+    CAN_NONE,
+    CAN_SKIP,
+    BadEntity,
+    Comment,
+    Entity,
+    Entry,
+    Junk,
+    OffsetComment,
+    Parser,
+    Whitespace,
+)
+from .defines import DefinesInstruction, DefinesParser
 from .dtd import DTDEntity, DTDParser
-from .fluent import (
-    FluentParser,
-    FluentComment,
-    FluentEntity,
-    FluentMessage,
-    FluentTerm,
-)
-from .ini import (
-    IniParser,
-    IniSection,
-)
+from .fluent import FluentComment, FluentEntity, FluentMessage, FluentParser, FluentTerm
+from .ini import IniParser, IniSection
 from .po import PoParser
-from .properties import PropertiesParser, PropertiesEntity
+from .properties import PropertiesEntity, PropertiesParser
 
 __all__ = [
     "CAN_NONE",

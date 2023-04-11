@@ -17,13 +17,13 @@ from xml.dom.minidom import Node
 
 from .base import (
     CAN_SKIP,
-    Entity,
     Comment,
+    Entity,
     Junk,
-    Whitespace,
-    StickyEntry,
     LiteralEntity,
     Parser,
+    StickyEntry,
+    Whitespace,
 )
 
 

@@ -10,7 +10,7 @@ Parses gettext po and pot files.
 
 import re
 
-from .base import CAN_SKIP, Entity, BadEntity, Parser
+from .base import CAN_SKIP, BadEntity, Entity, Parser
 
 
 class PoEntityMixin:

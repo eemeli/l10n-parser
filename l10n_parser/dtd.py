@@ -12,7 +12,7 @@ except ImportError:
     html_parser = HTMLParser()
     html_unescape = html_parser.unescape
 
-from .base import Entity, Comment, Junk, Parser
+from .base import Comment, Entity, Junk, Parser
 
 
 class DTDEntityMixin:
