@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools >= 61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "l10n-parser"
+version = "0.0.1"
+description = "Parse localization files"
+readme = "README.md"
+license = { text = "MPL-2.0" }
+authors = [
+  { name = "Mozilla", email = "l10n-drivers@mozilla.org" },
+  { name = "Eemeli Aro", email = "eemeli@mozilla.com" },
+  { name = "Axel Hecht" },
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Software Development :: Localization",
+  "Topic :: Software Development :: Testing",
+]
+requires-python = ">=3.7, <4"
+dependencies = ["fluent.syntax >=0.18.0, <0.20"]
+
+[project.urls]
+repository = "https://github.com/eemeli/l10n-parser"
+
+[tool.isort]
+profile = "black"
+extra_standard_library = ["typing_extensions", "_typeshed"]
+
+[tool.mypy]
+strict = false
+
+[tool.setuptools]
+platforms = ["any"]
+packages = ["l10n_parser"]
