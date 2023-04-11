@@ -18,7 +18,7 @@ class PropertiesEntityMixin:
 
     @property
     def val(self) -> str:
-        def unescape(m):
+        def unescape(m: re.Match[str]) -> str:
             found = m.groupdict()
             if found["uni"]:
                 return chr(int(found["uni"][1:], 16))

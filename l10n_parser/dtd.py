@@ -116,7 +116,7 @@ class DTDParser(Parser):
     def createEntity(
         self,
         ctx: Parser.Context,
-        m: re.Match,
+        m: re.Match[str],
         current_comment: Optional[DTDParser.Comment],  # type:ignore[override]
         white_space: Optional[Whitespace],
     ) -> DTDEntity:

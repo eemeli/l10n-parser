@@ -31,7 +31,7 @@ class PoEntity(Entity):
         # gettext denotes a non-localized string by an empty value
         return bool(self.stringlist_val)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.key[0]
 
 
@@ -69,7 +69,7 @@ class PoParser(Parser):
     def createEntity(
         self,
         ctx: Parser.Context,
-        m: re.Match,
+        m: re.Match[str],
         current_comment: Optional[Comment],
         white_space: None,  # type:ignore[override]
     ) -> PoEntity:

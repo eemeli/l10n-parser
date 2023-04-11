@@ -44,13 +44,15 @@ class WordCounter(Visitor):
 class FluentAttribute(Entry):
     ignored_fields = ["span"]
 
-    def __init__(self, entity, attr_node):
+    def __init__(self, entity: FluentEntity, attr_node: ftl.Attribute):
         self.ctx = entity.ctx
         self.attr = attr_node
-        self.key_span = (attr_node.id.span.start, attr_node.id.span.end)
-        self.val_span = (attr_node.value.span.start, attr_node.value.span.end)
+        id_span = cast(ftl.Span, attr_node.id.span)
+        self.key_span = (id_span.start, id_span.end)
+        val_span = cast(ftl.Span, attr_node.value.span)
+        self.val_span = (val_span.start, val_span.end)
 
-    def equals(self, other):
+    def equals(self, other: Entity) -> bool:
         if not isinstance(other, FluentAttribute):
             return False
         return self.attr.equals(other.attr, ignored_fields=self.ignored_fields)
@@ -133,7 +135,7 @@ class FluentEntity(Entity):
         for attr_node in self.entry.attributes:
             yield FluentAttribute(self, attr_node)
 
-    def unwrap(self):
+    def unwrap(self) -> str:
         return self.all
 
     def wrap(self, raw_val: str) -> LiteralEntity:

@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 import re
-from typing import Union
+from typing import Tuple, Union
 
 from .base import Entity, Entry, Junk, OffsetComment, Parser, Whitespace
 
@@ -13,13 +13,15 @@ from .base import Entity, Entry, Junk, OffsetComment, Parser, Whitespace
 class IniSection(Entry):
     """Entity-like object representing sections in ini files"""
 
-    def __init__(self, ctx, span, val_span):
+    def __init__(
+        self, ctx: Parser.Context, span: Tuple[int, int], val_span: Tuple[int, int]
+    ):
         self.ctx = ctx
         self.span = span
         self.key_span = self.val_span = val_span
 
-    def __repr__(self):
-        return self.raw_val
+    def __repr__(self) -> str:
+        return self.raw_val  # type:ignore
 
 
 class IniParser(Parser):
@@ -35,7 +37,7 @@ class IniParser(Parser):
 
     Comment = OffsetComment
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.reComment = re.compile("(?:^[;#][^\n]*\n)*(?:^[;#][^\n]*)", re.M)
         self.reSection = re.compile(r"\[(?P<val>.*?)\]", re.M)
         self.reKey = re.compile("(?P<key>.+?)=(?P<val>.*)", re.M)
@@ -51,7 +53,9 @@ class IniParser(Parser):
 
         return super().getNext(ctx, offset)  # type: ignore
 
-    def getJunk(self, ctx: Parser.Context, offset: int, *expressions) -> Junk:
+    def getJunk(
+        self, ctx: Parser.Context, offset: int, *expressions: re.Pattern[str]
+    ) -> Junk:
         # base.Parser.getNext calls us with self.reKey, self.reComment.
         # Add self.reSection to the end-of-junk expressions
         expressions = expressions + (self.reSection,)

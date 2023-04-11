@@ -13,7 +13,7 @@ break the full parsing, and result in a single Junk entry.
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Iterator, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Iterator, Optional, Tuple, Union, cast
 from xml.dom import minidom
 from xml.dom.minidom import Node
 
@@ -29,6 +29,7 @@ from .base import (
 )
 
 if TYPE_CHECKING:
+    from typing_extensions import Literal
     from xml.dom.minicompat import NodeList
 
 
@@ -73,21 +74,18 @@ class AndroidEntity(Entity):
     def raw_val(self) -> str:
         return self._raw_val_literal
 
-    def position(self, offset=0):
+    def position(self, offset: int = 0) -> Tuple[Literal[0], int]:
         return (0, offset)
 
-    def value_position(self, offset=0):
+    def value_position(self, offset: int = 0) -> Tuple[Literal[0], int]:
         return (0, offset)
 
     def wrap(self, raw_val: str) -> LiteralEntity:
-        clone = self.node.cloneNode(True)
-        if clone.childNodes.length == 1:
-            child = clone.childNodes[0]
-        else:
-            for child in clone.childNodes:
-                if child.nodeType == Node.CDATA_SECTION_NODE:
-                    break
-        child.data = raw_val  # type: ignore
+        clone = cast(minidom.Element, self.node.cloneNode(True))  # type:ignore
+        for child in clone.childNodes:
+            if child.nodeType == Node.CDATA_SECTION_NODE:
+                break
+        child.data = raw_val  # pyright: ignore
         all = []
         if self.pre_comment is not None:
             all.append(self.pre_comment.all)
@@ -107,17 +105,17 @@ class NodeMixin:
         return self._all_literal
 
     @property
-    def key(self):
+    def key(self) -> str:
         return self._all_literal
 
     @property
     def raw_val(self) -> str:
         return self._val_literal
 
-    def position(self, offset=0):
+    def position(self, offset: int = 0) -> Tuple[Literal[0], int]:
         return (0, offset)
 
-    def value_position(self, offset=0):
+    def value_position(self, offset: int = 0) -> Tuple[Literal[0], int]:
         return (0, offset)
 
 
@@ -131,7 +129,7 @@ class XMLComment(NodeMixin, Comment):
         return self._val_literal
 
     @property
-    def key(self):
+    def key(self) -> None:  # type:ignore[override]
         return None
 
 
@@ -157,10 +155,10 @@ class XMLJunk(Junk):
     def all(self) -> str:
         return self._all_literal
 
-    def position(self, offset=0):
+    def position(self, offset: int = 0) -> Tuple[Literal[0], int]:
         return (0, offset)
 
-    def value_position(self, offset=0):
+    def value_position(self, offset: int = 0) -> Tuple[Literal[0], int]:
         return (0, offset)
 
 
@@ -169,14 +167,14 @@ def textContent(node: minidom.Element) -> str:
         return ""
     for child in node.childNodes:
         if child.nodeType == minidom.Node.CDATA_SECTION_NODE:
-            return child.data
+            return cast(str, child.data)
     if (
         node.childNodes.length != 1
         or node.childNodes[0].nodeType != minidom.Node.TEXT_NODE
     ):
         # Return something, we'll fail in checks on this
-        return node.toxml()
-    return node.childNodes[0].data
+        return cast(str, node.toxml())
+    return cast(str, node.childNodes[0].data)
 
 
 NEWLINE = re.compile(r"[ \t]*\n[ \t]*")
@@ -293,7 +291,10 @@ class AndroidParser(Parser):
             return XMLJunk(element.toxml())
 
     def handleComment(
-        self, node: minidom.Comment, root_children: NodeList, child_num: int
+        self,
+        node: minidom.Comment,
+        root_children: NodeList[minidom.Element],
+        child_num: int,
     ) -> Tuple[XMLComment, int]:
         all = node.toxml()
         val = normalize(node.nodeValue)
@@ -301,18 +302,18 @@ class AndroidParser(Parser):
             child_num += 1
             if child_num >= len(root_children):
                 break
-            node = root_children[child_num]
-            if node.nodeType == Node.TEXT_NODE:
-                if node.nodeValue.count("\n") > 1:
+            node_ = root_children[child_num]
+            if node_.nodeType == Node.TEXT_NODE:
+                if node_.nodeValue.count("\n") > 1:
                     break
-                white = node
+                white = node_
                 child_num += 1
                 if child_num >= len(root_children):
                     break
-                node = root_children[child_num]
+                node_ = root_children[child_num]
             else:
                 white = None
-            if node.nodeType != Node.COMMENT_NODE:
+            if node_.nodeType != Node.COMMENT_NODE:
                 if white is not None:
                     # do not consume this node
                     child_num -= 1
@@ -320,6 +321,6 @@ class AndroidParser(Parser):
             if white:
                 all += white.toxml()
                 val += normalize(white.nodeValue)
-            all += node.toxml()
-            val += normalize(node.nodeValue)
+            all += node_.toxml()
+            val += normalize(node_.nodeValue)
         return XMLComment(all, val), child_num

@@ -9,16 +9,19 @@ import codecs
 import re
 from collections import Counter
 from typing import (
+    TYPE_CHECKING,
     Any,
     Iterable,
     Iterator,
     List,
-    Literal,
     Optional,
     Tuple,
     Union,
     overload,
 )
+
+if TYPE_CHECKING:
+    from typing_extensions import Literal
 
 # The allowed capabilities for the Parsers.  They define the exact strategy
 # used by ContentComparer.merge.

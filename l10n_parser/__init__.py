@@ -77,7 +77,7 @@ def getParser(path: str) -> Parser:
     raise UserWarning("Cannot find Parser")
 
 
-def hasParser(path):
+def hasParser(path: str) -> bool:
     try:
         return bool(getParser(path))
     except UserWarning:
