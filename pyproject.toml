@@ -3,9 +3,9 @@ requires = ["setuptools >= 61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "l10n-parser"
+name = "l10n-tools"
 version = "0.0.1"
-description = "Parse localization files"
+description = "Tools for localization"
 readme = "README.md"
 license = { text = "MPL-2.0" }
 authors = [
@@ -32,7 +32,7 @@ requires-python = ">=3.7, <4"
 dependencies = ["fluent.syntax >=0.18.0, <0.20"]
 
 [project.urls]
-repository = "https://github.com/eemeli/l10n-parser"
+repository = "https://github.com/eemeli/l10n-tools"
 
 [tool.isort]
 profile = "black"
