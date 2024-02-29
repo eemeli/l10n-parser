@@ -378,12 +378,12 @@ class Parser:
         return self.walk(only_localizable=True)
 
     @overload
-    def walk(self, only_localizable: Literal[True]) -> Iterator[Union[Entity, Junk]]:
-        ...
+    def walk(
+        self, only_localizable: Literal[True]
+    ) -> Iterator[Union[Entity, Junk]]: ...
 
     @overload
-    def walk(self, only_localizable: bool = False) -> Iterator[Any]:
-        ...
+    def walk(self, only_localizable: bool = False) -> Iterator[Any]: ...
 
     def walk(self, only_localizable: bool = False) -> Iterator[Any]:
         if not self.ctx:

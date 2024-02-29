@@ -173,7 +173,7 @@ def textContent(node: minidom.Element) -> str:
         or node.childNodes[0].nodeType != minidom.Node.TEXT_NODE
     ):
         # Return something, we'll fail in checks on this
-        return cast(str, node.toxml())
+        return node.toxml()
     return cast(str, node.childNodes[0].data)
 
 
