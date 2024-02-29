@@ -9,13 +9,12 @@ Parses gettext po and pot files.
 from __future__ import annotations
 
 import re
-from typing import List, Optional, Tuple, Union
 
 from .base import CAN_SKIP, BadEntity, Comment, Entity, Parser
 
 
 class PoEntity(Entity):
-    stringlist_key: Tuple[str, Union[str, None]]
+    stringlist_key: tuple[str, str | None]
     stringlist_val: str
 
     @property
@@ -23,7 +22,7 @@ class PoEntity(Entity):
         return self.stringlist_val if self.stringlist_val else self.stringlist_key[0]
 
     @property
-    def key(self) -> Tuple[str, Union[str, None]]:  # type:ignore[override]
+    def key(self) -> tuple[str, str | None]:  # type:ignore[override]
         return self.stringlist_key
 
     @property
@@ -36,7 +35,7 @@ class PoEntity(Entity):
 
 
 # Unescape and concat a string list
-def eval_stringlist(lines: List[str]) -> str:
+def eval_stringlist(lines: list[str]) -> str:
     return "".join(
         (
             line.replace(r"\\", "\\")
@@ -70,7 +69,7 @@ class PoParser(Parser):
         self,
         ctx: Parser.Context,
         m: re.Match[str],
-        current_comment: Optional[Comment],
+        current_comment: Comment | None,
         white_space: None,  # type:ignore[override]
     ) -> PoEntity:
         start = cursor = m.start()
@@ -106,7 +105,7 @@ class PoParser(Parser):
 
     def _parse_string_list(
         self, ctx: Parser.Context, cursor: int, key: str
-    ) -> Tuple[str, int]:
+    ) -> tuple[str, int]:
         if not ctx.contents.startswith(key, cursor):
             raise BadEntity
         cursor += len(key)

@@ -5,7 +5,8 @@
 from __future__ import annotations
 
 import re
-from typing import Iterator, Optional, Tuple, Union, cast
+from collections.abc import Iterator
+from typing import cast
 
 from fluent.syntax import FluentParser as FTLParser
 from fluent.syntax import ast as ftl
@@ -61,11 +62,9 @@ class FluentAttribute(Entry):
 class FluentEntity(Entity):
     # Fields ignored when comparing two entities.
     ignored_fields = ["comment", "span"]
-    val_span: Optional[Tuple[int, int]]  # type:ignore[assignment]
+    val_span: tuple[int, int] | None  # type:ignore[assignment]
 
-    def __init__(
-        self, ctx: Parser.Context, entry: Union[ftl.Message, ftl.Term]
-    ) -> None:
+    def __init__(self, ctx: Parser.Context, entry: ftl.Message | ftl.Term) -> None:
         span = cast(ftl.Span, entry.span)
         start = span.start
         end = span.end
@@ -97,7 +96,7 @@ class FluentEntity(Entity):
         self.pre_comment = None
 
     @property
-    def root_node(self) -> Union[ftl.Message, ftl.Term, ftl.Pattern, None]:
+    def root_node(self) -> ftl.Message | ftl.Term | ftl.Pattern | None:
         """AST node at which to start traversal for count_words.
 
         By default we count words in the value and in all attributes.
@@ -115,13 +114,13 @@ class FluentEntity(Entity):
         return self._word_count
 
     def equals(
-        self, other: Union[FluentTerm, FluentMessage]  # type:ignore[override]
+        self, other: FluentTerm | FluentMessage  # type:ignore[override]
     ) -> bool:
         return self.entry.equals(other.entry, ignored_fields=self.ignored_fields)
 
     # In Fluent we treat entries as a whole.  FluentChecker reports errors at
     # offsets calculated from the beginning of the entry.
-    def value_position(self, offset: Optional[int] = None) -> Tuple[int, int]:
+    def value_position(self, offset: int | None = None) -> tuple[int, int]:
         if offset is None:
             # no offset given, use our value start or id end
             if self.val_span:
@@ -160,7 +159,7 @@ class FluentTerm(FluentEntity):
     ignored_fields = ["attributes", "comment", "span"]
 
     @property
-    def root_node(self) -> Union[ftl.Pattern, None]:
+    def root_node(self) -> ftl.Pattern | None:
         """AST node at which to start traversal for count_words.
 
         In Fluent Terms we only count words in the value. Attributes are
@@ -173,8 +172,8 @@ class FluentComment(Comment):
     def __init__(
         self,
         ctx: Parser.Context,
-        span: Tuple[int, int],
-        entry: Union[ftl.Comment, ftl.GroupComment, ftl.ResourceComment],
+        span: tuple[int, int],
+        entry: ftl.Comment | ftl.GroupComment | ftl.ResourceComment,
     ) -> None:
         super().__init__(ctx, span)
         self._val_cache = entry.content
@@ -189,7 +188,7 @@ class FluentParser(Parser):
 
     def walk(  # type:ignore[override]
         self, only_localizable: bool = False
-    ) -> Iterator[Union[FluentTerm, FluentMessage, Whitespace, Junk, FluentComment]]:
+    ) -> Iterator[FluentTerm | FluentMessage | Whitespace | Junk | FluentComment]:
         if not self.ctx:
             # loading file failed, or we just didn't load anything
             return

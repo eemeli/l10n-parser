@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 import re
-from typing import Tuple, Union
 
 from .base import Entity, Entry, Junk, OffsetComment, Parser, Whitespace
 
@@ -14,7 +13,7 @@ class IniSection(Entry):
     """Entity-like object representing sections in ini files"""
 
     def __init__(
-        self, ctx: Parser.Context, span: Tuple[int, int], val_span: Tuple[int, int]
+        self, ctx: Parser.Context, span: tuple[int, int], val_span: tuple[int, int]
     ):
         self.ctx = ctx
         self.span = span
@@ -45,7 +44,7 @@ class IniParser(Parser):
 
     def getNext(
         self, ctx: Parser.Context, offset: int
-    ) -> Union[Junk, OffsetComment, IniSection, Entity, Whitespace]:
+    ) -> Junk | OffsetComment | IniSection | Entity | Whitespace:
         contents = ctx.contents
         m = self.reSection.match(contents, offset)
         if m:

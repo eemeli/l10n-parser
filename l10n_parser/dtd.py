@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import re
 from html import unescape as html_unescape
-from typing import Optional, Tuple, Union
 
 from .base import Comment as Comment_
 from .base import Entity, Junk, Parser, Whitespace
@@ -27,9 +26,7 @@ class DTDEntityMixin:
         """
         return html_unescape(self.raw_val)  # type: ignore
 
-    def value_position(
-        self, offset: Union[Tuple[int, int], int] = 0
-    ) -> Tuple[int, int]:
+    def value_position(self, offset: tuple[int, int] | int = 0) -> tuple[int, int]:
         # DTDChecker already returns tuples of (line, col) positions
         if isinstance(offset, tuple):
             line_pos, col_pos = offset
@@ -94,7 +91,7 @@ class DTDParser(Parser):
 
     def getNext(
         self, ctx: Parser.Context, offset: int
-    ) -> Union[Whitespace, DTDParser.Comment, Junk, DTDEntity]:
+    ) -> Whitespace | DTDParser.Comment | Junk | DTDEntity:
         """
         Overload Parser.getNext to special-case ParsedEntities.
         Just check for a parsed entity if that method claims junk.
@@ -117,8 +114,8 @@ class DTDParser(Parser):
         self,
         ctx: Parser.Context,
         m: re.Match[str],
-        current_comment: Optional[DTDParser.Comment],  # type:ignore[override]
-        white_space: Optional[Whitespace],
+        current_comment: DTDParser.Comment | None,  # type:ignore[override]
+        white_space: Whitespace | None,
     ) -> DTDEntity:
         valspan = m.span("val")
         valspan = (valspan[0] + 1, valspan[1] - 1)

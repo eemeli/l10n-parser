@@ -13,7 +13,8 @@ break the full parsing, and result in a single Junk entry.
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Iterator, Optional, Tuple, Union, cast
+from collections.abc import Iterator
+from typing import TYPE_CHECKING, cast
 from xml.dom import minidom
 from xml.dom.minidom import Node
 
@@ -37,8 +38,8 @@ class AndroidEntity(Entity):
     def __init__(
         self,
         ctx: Parser.Context,
-        pre_comment: Union[XMLComment, None],
-        white_space: Union[XMLWhitespace, None],
+        pre_comment: XMLComment | None,
+        white_space: XMLWhitespace | None,
         node: minidom.Element,
         all: str,
         key: str,
@@ -74,10 +75,10 @@ class AndroidEntity(Entity):
     def raw_val(self) -> str:
         return self._raw_val_literal
 
-    def position(self, offset: int = 0) -> Tuple[Literal[0], int]:
+    def position(self, offset: int = 0) -> tuple[Literal[0], int]:
         return (0, offset)
 
-    def value_position(self, offset: int = 0) -> Tuple[Literal[0], int]:
+    def value_position(self, offset: int = 0) -> tuple[Literal[0], int]:
         return (0, offset)
 
     def wrap(self, raw_val: str) -> LiteralEntity:
@@ -85,7 +86,7 @@ class AndroidEntity(Entity):
         for child in clone.childNodes:
             if child.nodeType == Node.CDATA_SECTION_NODE:
                 break
-        child.data = raw_val  # pyright: ignore
+        child.data = raw_val
         all = []
         if self.pre_comment is not None:
             all.append(self.pre_comment.all)
@@ -112,10 +113,10 @@ class NodeMixin:
     def raw_val(self) -> str:
         return self._val_literal
 
-    def position(self, offset: int = 0) -> Tuple[Literal[0], int]:
+    def position(self, offset: int = 0) -> tuple[Literal[0], int]:
         return (0, offset)
 
-    def value_position(self, offset: int = 0) -> Tuple[Literal[0], int]:
+    def value_position(self, offset: int = 0) -> tuple[Literal[0], int]:
         return (0, offset)
 
 
@@ -155,10 +156,10 @@ class XMLJunk(Junk):
     def all(self) -> str:
         return self._all_literal
 
-    def position(self, offset: int = 0) -> Tuple[Literal[0], int]:
+    def position(self, offset: int = 0) -> tuple[Literal[0], int]:
         return (0, offset)
 
-    def value_position(self, offset: int = 0) -> Tuple[Literal[0], int]:
+    def value_position(self, offset: int = 0) -> tuple[Literal[0], int]:
         return (0, offset)
 
 
@@ -195,7 +196,7 @@ class AndroidParser(Parser):
     def walk(  # type:ignore[override]
         self, only_localizable: bool = False
     ) -> Iterator[
-        Union[DocumentWrapper, XMLWhitespace, AndroidEntity, XMLComment, XMLJunk]
+        DocumentWrapper | XMLWhitespace | AndroidEntity | XMLComment | XMLJunk
     ]:
         if not self.ctx:
             # loading file failed, or we just didn't load anything
@@ -273,9 +274,9 @@ class AndroidParser(Parser):
     def handleElement(
         self,
         element: minidom.Element,
-        current_comment: Optional[XMLComment],
-        white_space: Optional[XMLWhitespace],
-    ) -> Union[AndroidEntity, XMLJunk]:
+        current_comment: XMLComment | None,
+        white_space: XMLWhitespace | None,
+    ) -> AndroidEntity | XMLJunk:
         if element.nodeName == "string" and element.hasAttribute("name"):
             return AndroidEntity(
                 self.ctx,  # type: ignore
@@ -295,7 +296,7 @@ class AndroidParser(Parser):
         node: minidom.Comment,
         root_children: NodeList[minidom.Element],
         child_num: int,
-    ) -> Tuple[XMLComment, int]:
+    ) -> tuple[XMLComment, int]:
         all = node.toxml()
         val = normalize(node.nodeValue)
         while True:

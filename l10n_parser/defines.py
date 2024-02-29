@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 import re
-from typing import Tuple, Union
 
 from .base import CAN_COPY, Entity, Entry, Junk, OffsetComment, Parser, Whitespace
 
@@ -19,8 +18,8 @@ class DefinesInstruction(Entry):
     def __init__(
         self,
         ctx: DefinesParser.Context,
-        span: Tuple[int, int],
-        val_span: Tuple[int, int],
+        span: tuple[int, int],
+        val_span: tuple[int, int],
     ) -> None:
         self.ctx = ctx
         self.span = span
@@ -57,7 +56,7 @@ class DefinesParser(Parser):
 
     def getNext(
         self, ctx: DefinesParser.Context, offset: int  # type:ignore[override]
-    ) -> Union[DefinesInstruction, Entity, Whitespace, DefinesParser.Comment, Junk]:
+    ) -> DefinesInstruction | Entity | Whitespace | DefinesParser.Comment | Junk:
         junk_offset = offset
         contents = ctx.contents
 

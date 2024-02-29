@@ -8,17 +8,8 @@ import bisect
 import codecs
 import re
 from collections import Counter
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Tuple,
-    Union,
-    overload,
-)
+from collections.abc import Iterable, Iterator
+from typing import TYPE_CHECKING, Any, overload
 
 if TYPE_CHECKING:
     from typing_extensions import Literal
@@ -55,11 +46,11 @@ class Entry:
     def __init__(
         self,
         ctx: Parser.Context,
-        pre_comment: Optional[Comment],
-        inner_white: Optional[Whitespace],
-        span: Tuple[int, int],
-        key_span: Tuple[int, int],
-        val_span: Tuple[int, int],
+        pre_comment: Comment | None,
+        inner_white: Whitespace | None,
+        span: tuple[int, int],
+        key_span: tuple[int, int],
+        val_span: tuple[int, int],
     ) -> None:
         self.ctx = ctx
         self.span = span
@@ -68,7 +59,7 @@ class Entry:
         self.pre_comment = pre_comment
         self.inner_white = inner_white
 
-    def position(self, offset: int = 0) -> Tuple[int, int]:
+    def position(self, offset: int = 0) -> tuple[int, int]:
         """Get the 1-based line and column of the character
         with given offset into the Entity.
 
@@ -80,7 +71,7 @@ class Entry:
             pos = self.span[0] + offset
         return self.ctx.linecol(pos)
 
-    def value_position(self, offset: int = 0) -> Tuple[int, int]:
+    def value_position(self, offset: int = 0) -> tuple[int, int]:
         """Get the 1-based line and column of the character
         with given offset into the value.
 
@@ -110,13 +101,13 @@ class Entry:
         return self.ctx.contents[self.key_span[0] : self.key_span[1]]
 
     @property
-    def raw_val(self) -> Union[str, None]:
+    def raw_val(self) -> str | None:
         if self.val_span is None:
             return None
         return self.ctx.contents[self.val_span[0] : self.val_span[1]]
 
     @property
-    def val(self) -> Union[str, None]:
+    def val(self) -> str | None:
         return self.raw_val
 
     def __repr__(self) -> str:
@@ -158,7 +149,7 @@ class Entity(Entry):
         """
         return True
 
-    def unwrap(self) -> Optional[str]:
+    def unwrap(self) -> str | None:
         """Return the literal value to be used by tools."""
         return self.raw_val
 
@@ -209,11 +200,11 @@ class PlaceholderEntity(LiteralEntity):
 
 
 class Comment(Entry):
-    def __init__(self, ctx: Parser.Context, span: Tuple[int, int]) -> None:
+    def __init__(self, ctx: Parser.Context, span: tuple[int, int]) -> None:
         self.ctx = ctx
         self.span = span
         self.val_span = None  # type:ignore
-        self._val_cache: Optional[str] = None
+        self._val_cache: str | None = None
 
     @property
     def key(self) -> None:  # type:ignore[override]
@@ -258,14 +249,14 @@ class Junk:
     def __init__(
         self,
         ctx: Parser.Context,
-        span: Tuple[int, int],
+        span: tuple[int, int],
     ) -> None:
         self.ctx = ctx
         self.span = span
         self.__class__.junkid += 1
         self.key = "_junk_%d_%d-%d" % (self.__class__.junkid, span[0], span[1])
 
-    def position(self, offset: int = 0) -> Tuple[int, int]:
+    def position(self, offset: int = 0) -> tuple[int, int]:
         """Get the 1-based line and column of the character
         with given offset into the Entity.
 
@@ -308,7 +299,7 @@ class Whitespace(Entry):
     raw_val: str
     val: str
 
-    def __init__(self, ctx: Parser.Context, span: Tuple[int, int]) -> None:
+    def __init__(self, ctx: Parser.Context, span: tuple[int, int]) -> None:
         self.ctx = ctx
         self.span = self.key_span = self.val_span = span
 
@@ -339,9 +330,9 @@ class Parser:
         def __init__(self, contents: str):
             self.contents = contents
             # cache split lines
-            self._lines: Optional[List[int]] = None
+            self._lines: list[int] | None = None
 
-        def linecol(self, position: int) -> Tuple[int, int]:
+        def linecol(self, position: int) -> tuple[int, int]:
             "Returns 1-based line and column numbers."
             if self._lines is None:
                 nl = re.compile("\n", re.M)
@@ -356,7 +347,7 @@ class Parser:
     def __init__(self) -> None:
         if not hasattr(self, "encoding"):
             self.encoding = "utf-8"
-        self.ctx: Optional[Parser.Context] = None
+        self.ctx: Parser.Context | None = None
 
     def readFile(self, file: str) -> None:
         """Read contents from disk, with universal_newlines"""
@@ -374,13 +365,11 @@ class Parser:
     def readUnicode(self, contents: str) -> None:
         self.ctx = self.Context(contents)
 
-    def __iter__(self) -> Iterator[Union[Entity, Junk]]:
+    def __iter__(self) -> Iterator[Entity | Junk]:
         return self.walk(only_localizable=True)
 
     @overload
-    def walk(
-        self, only_localizable: Literal[True]
-    ) -> Iterator[Union[Entity, Junk]]: ...
+    def walk(self, only_localizable: Literal[True]) -> Iterator[Entity | Junk]: ...
 
     @overload
     def walk(self, only_localizable: bool = False) -> Iterator[Any]: ...
@@ -401,7 +390,7 @@ class Parser:
 
             next_offset = entity.span[1]
 
-    def getNext(self, ctx: Parser.Context, offset: int) -> Union[Entry, Junk]:
+    def getNext(self, ctx: Parser.Context, offset: int) -> Entry | Junk:
         """Parse the next fragment.
 
         Parse comments first, then white-space.
@@ -455,7 +444,7 @@ class Parser:
         offset: int,
         *expressions: re.Pattern[str],
     ) -> Junk:
-        junkend: Optional[int] = None
+        junkend: int | None = None
         for exp in expressions:
             m = exp.search(ctx.contents, offset)
             if m:
@@ -466,8 +455,8 @@ class Parser:
         self,
         ctx: Parser.Context,
         m: re.Match[str],
-        current_comment: Optional[Comment_],
-        white_space: Optional[Whitespace],
+        current_comment: Comment_ | None,
+        white_space: Whitespace | None,
     ) -> Entity:
         return Entity(
             ctx, current_comment, white_space, m.span(), m.span("key"), m.span("val")

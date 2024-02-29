@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 import re
-from typing import Union
 
 from .base import Entity, Junk, OffsetComment, Parser, Whitespace
 
@@ -45,7 +44,7 @@ class PropertiesParser(Parser):
 
     def getNext(
         self, ctx: Parser.Context, offset: int
-    ) -> Union[Whitespace, OffsetComment, Junk, PropertiesEntity]:
+    ) -> Whitespace | OffsetComment | Junk | PropertiesEntity:
         junk_offset = offset
         # overwritten to parse values line by line
         contents = ctx.contents
