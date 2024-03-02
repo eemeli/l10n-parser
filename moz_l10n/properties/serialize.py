@@ -1,0 +1,87 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+from typing import Callable, Generator, Literal
+
+from translate.storage.properties import propunit
+
+from ..resource import Entry, M, Metadata, Resource, V
+
+
+def properties_serialize(
+    resource: Resource[V, M],
+    encoding: Literal["iso-8859-1", "utf-8", "utf-16"] = "utf-8",
+    serialize_message: Callable[[V], str] | None = None,
+    serialize_metadata: Callable[[Metadata[M]], str | None] | None = None,
+) -> Generator[str, None, None]:
+    """
+    Serialize a resource as the contents of a .properties file.
+
+    Section identifiers will be prepended to their constituent message identifiers.
+    Multi-part message identifiers will be joined with `.` between each part.
+
+    For non-string message values, a `serialize_message` callable must be provided.
+    If the resource includes any metadata, a `serialize_metadata` callable must be provided
+    to map each field into a comment value, or to discard it by returning an empty value.
+
+    Comment lines not starting with `#` will be prefixed with `# `.
+
+    Yields each entry, comment, and empty line separately.
+    Re-parsing a serialized .properties file is not guaranteed to result in the same Resource,
+    as the serialization may lose information about message sections and metadata.
+    """
+
+    personality = "java-utf8" if encoding == "utf-8" or encoding == "utf-16" else "java"
+    at_empty_line = True
+
+    def comment(
+        comment: str, meta: list[Metadata[M]] | None, standalone: bool
+    ) -> Generator[str, None, None]:
+        nonlocal at_empty_line
+        lines = comment.strip("\n").split("\n") if comment else []
+        if meta:
+            if not serialize_metadata:
+                raise Exception("Metadata requires serialize_metadata parameter")
+            for field in meta:
+                meta_str = serialize_metadata(field)
+                if meta_str:
+                    lines += meta_str.strip("\n").split("\n")
+        if lines:
+            if standalone and not at_empty_line:
+                yield "\n"
+                at_empty_line = True
+            for line in lines:
+                if not line or line.isspace():
+                    yield "#\n"
+                else:
+                    line = line.rstrip() + "\n"
+                    yield line if line.startswith("#") else f"# {line}"
+            if standalone:
+                yield "\n"
+
+    yield from comment(resource.comment, resource.meta, True)
+    for section in resource.sections:
+        yield from comment(section.comment, section.meta, True)
+        id_prefix = ".".join(section.id) + "." if section.id else ""
+        for entry in section.entries:
+            if isinstance(entry, Entry):
+                yield from comment(entry.comment, entry.meta, False)
+                unit = propunit(personality=personality)
+                unit.out_delimiter_wrappers = " "
+                unit.name = id_prefix + ".".join(entry.id)
+                source = (
+                    serialize_message(entry.value) if serialize_message else entry.value
+                )
+                if not isinstance(source, str):
+                    raise Exception(f"Source value for {unit.name} is not a string")
+                unit.source = source
+                if unit.value[0:1].isspace():
+                    unit.value = "\\" + unit.value
+                if unit.value.endswith(" ") and not unit.value.endswith("\\ "):
+                    unit.value = unit.value[:-1] + "\\u0020"
+                yield unit.getoutput()
+                if at_empty_line:
+                    at_empty_line = False
+            else:
+                yield from comment(entry.comment, None, True)
