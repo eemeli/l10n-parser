@@ -7,9 +7,8 @@
 
 
 import re
+from importlib.resources import files
 from itertools import zip_longest
-
-from pkg_resources import resource_string
 
 from l10n_parser import Entity, getParser
 
@@ -28,7 +27,8 @@ class ParserTestMixin:
         del self.parser
 
     def resource(self, name):
-        testcontent = resource_string("tests", "data/" + name)
+
+        testcontent = files("tests.data").joinpath(name).read_bytes()
         # fake universal line endings
         testcontent = re.sub(b"\r\n?", lambda m: b"\n", testcontent)
         return testcontent
