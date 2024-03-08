@@ -5,10 +5,6 @@
 from textwrap import dedent
 from unittest import TestCase
 
-# Show full diff in self.assertEqual. https://stackoverflow.com/a/61345284
-# __import__("sys").modules["unittest.util"]._MAX_LENGTH = 999999999
-
-
 from moz_l10n import (
     CatchallKey,
     Comment,
@@ -24,6 +20,9 @@ from moz_l10n import (
     fluent_parse,
     fluent_serialize,
 )
+
+# Show full diff in self.assertEqual. https://stackoverflow.com/a/61345284
+# __import__("sys").modules["unittest.util"]._MAX_LENGTH = 999999999
 
 
 class TestPropertiesParser(TestCase):

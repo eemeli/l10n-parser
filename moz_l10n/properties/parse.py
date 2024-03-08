@@ -2,8 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from collections.abc import Callable
 from re import sub
-from typing import Callable, cast, overload
+from typing import cast, overload
 
 from translate.storage.properties import propfile
 

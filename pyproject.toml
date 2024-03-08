@@ -20,7 +20,6 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -28,7 +27,7 @@ classifiers = [
   "Topic :: Software Development :: Localization",
   "Topic :: Software Development :: Testing",
 ]
-requires-python = "~= 3.9"
+requires-python = "~= 3.10"
 dependencies = ["fluent.syntax ~= 0.19.0", "translate-toolkit ~= 3.12.2"]
 
 [project.urls]
@@ -36,7 +35,7 @@ repository = "https://github.com/eemeli/l10n-tools"
 
 [tool.isort]
 profile = "black"
-extra_standard_library = ["typing_extensions", "_typeshed"]
+extra_standard_library = ["_typeshed"]
 
 [tool.mypy]
 exclude = "^tests/"

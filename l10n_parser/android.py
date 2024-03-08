@@ -30,7 +30,7 @@ from .base import (
 )
 
 if TYPE_CHECKING:
-    from typing_extensions import Literal
+    from typing import Literal
     from xml.dom.minicompat import NodeList
 
 

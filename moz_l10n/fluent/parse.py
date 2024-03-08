@@ -2,8 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from collections.abc import Generator
 from itertools import product
-from typing import Generator, cast
+from typing import cast
 
 from fluent.syntax import FluentParser
 from fluent.syntax import ast as ftl
@@ -103,7 +104,7 @@ def message(ftl_pattern: ftl.Pattern) -> msg.Message:
             while isinstance(el, ftl.Placeable):
                 el = el.expression
             if isinstance(el, ftl.SelectExpression):
-                msg_sel = next((sd[0] for sd in sel_data if el.selector in sd[1]))
+                msg_sel = next(sd[0] for sd in sel_data if el.selector in sd[1])
                 idx = selectors.index(msg_sel)
                 prev_filt = filter[idx]
                 for v in el.variants:

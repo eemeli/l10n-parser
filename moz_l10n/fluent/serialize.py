@@ -2,8 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from collections.abc import Callable
 from re import fullmatch
-from typing import Any, Callable
+from typing import Any
 
 from fluent.syntax import ast as ftl
 from fluent.syntax import serialize

@@ -12,7 +12,7 @@ from collections.abc import Iterable, Iterator
 from typing import TYPE_CHECKING, Any, overload
 
 if TYPE_CHECKING:
-    from typing_extensions import Literal
+    from typing import Literal
 
 # The allowed capabilities for the Parsers.  They define the exact strategy
 # used by ContentComparer.merge.
