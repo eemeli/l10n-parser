@@ -14,7 +14,7 @@ from .. import resource as res
 
 
 def fluent_serialize(
-    resource: res.Resource[msg.Message, res.M],
+    resource: res.Resource[msg.Message | ftl.Pattern, res.M],
     serialize_metadata: Callable[[res.Metadata[res.M]], str | None] | None = None,
 ) -> str:
     """
@@ -35,7 +35,7 @@ def fluent_serialize(
 
 
 def fluent_astify(
-    resource: res.Resource[msg.Message, res.M],
+    resource: res.Resource[msg.Message | ftl.Pattern, res.M],
     serialize_metadata: Callable[[res.Metadata[res.M]], str | None] | None = None,
 ) -> ftl.Resource:
     """
@@ -82,49 +82,63 @@ def fluent_astify(
         cur: ftl.Message | ftl.Term | None = None
         cur_id = ""
         for entry in section.entries:
-            entry_comment = comment(entry)
             if isinstance(entry, res.Comment):
-                body.append(ftl.Comment(entry_comment))
+                body.append(ftl.Comment(entry.comment))
                 cur = None
-            elif len(entry.id) == 1:
-                cur_id = entry.id[0]
-                id = ftl.Identifier(cur_id)
-                value = pattern(entry.value)
-                cur = (
-                    ftl.Term(id, value) if cur_id[0] == "-" else ftl.Message(id, value)
+            else:
+                value = (
+                    entry.value
+                    if isinstance(entry.value, ftl.Pattern)
+                    else fluent_astify_message(entry.value)
                 )
-                if entry_comment:
-                    cur.comment = ftl.Comment(entry_comment)
-                body.append(cur)
-            elif len(entry.id) == 2:  # attribute
-                if cur is None or entry.id[0] != cur_id:
+                entry_comment = comment(entry)
+                if len(entry.id) == 1:  # value
                     cur_id = entry.id[0]
                     id = ftl.Identifier(cur_id)
-                    if cur_id[0] == "-":
-                        value = ftl.Pattern([ftl.Placeable(ftl.StringLiteral(""))])
-                        cur = ftl.Term(id, value)
-                    else:
-                        cur = ftl.Message(id)
+                    cur = (
+                        ftl.Term(id, value)
+                        if cur_id[0] == "-"
+                        else ftl.Message(id, value)
+                    )
                     if entry_comment:
                         cur.comment = ftl.Comment(entry_comment)
                     body.append(cur)
-                elif entry_comment:
-                    attr_comment = f"{entry.id[1]}:\n{entry_comment}"
-                    if cur.comment:
-                        cur.comment.content = (
-                            str(cur.comment.content) + "\n\n" + attr_comment
-                        )
-                    else:
-                        cur.comment = ftl.Comment(attr_comment)
-                cur.attributes.append(
-                    ftl.Attribute(ftl.Identifier(entry.id[1]), pattern(entry.value))
-                )
-            else:
-                raise Exception(f"Unsupported message id: {entry.id}")
+                elif len(entry.id) == 2:  # attribute
+                    if cur is None or entry.id[0] != cur_id:
+                        cur_id = entry.id[0]
+                        id = ftl.Identifier(cur_id)
+                        if cur_id[0] == "-":
+                            value = ftl.Pattern([ftl.Placeable(ftl.StringLiteral(""))])
+                            cur = ftl.Term(id, value)
+                        else:
+                            cur = ftl.Message(id)
+                        if entry_comment:
+                            cur.comment = ftl.Comment(entry_comment)
+                        body.append(cur)
+                    elif entry_comment:
+                        attr_comment = f"{entry.id[1]}:\n{entry_comment}"
+                        if cur.comment:
+                            cur.comment.content = (
+                                str(cur.comment.content) + "\n\n" + attr_comment
+                            )
+                        else:
+                            cur.comment = ftl.Comment(attr_comment)
+                    cur.attributes.append(
+                        ftl.Attribute(ftl.Identifier(entry.id[1]), value)
+                    )
+                else:
+                    raise Exception(f"Unsupported message id: {entry.id}")
     return ftl.Resource(body)
 
 
-def pattern(message: msg.Message) -> ftl.Pattern:
+def fluent_astify_message(message: msg.Message) -> ftl.Pattern:
+    """
+    Transform a message into a corresponding Fluent AST pattern.
+
+    Function names are upper-cased, and annotations with the `message` function
+    are mapped to message and term references.
+    """
+
     decl = [d for d in message.declarations if isinstance(d, msg.Declaration)]
     if len(decl) != len(message.declarations):
         raise ValueError("Unsupported statements are not supported")

@@ -1,4 +1,10 @@
-from .fluent import fluent_astify, fluent_parse, fluent_serialize
+from .fluent import (
+    fluent_astify,
+    fluent_astify_message,
+    fluent_parse,
+    fluent_parse_message,
+    fluent_serialize,
+)
 from .message import (
     CatchallKey,
     Declaration,
@@ -35,7 +41,9 @@ __all__ = [
     "UnsupportedStatement",
     "VariableRef",
     "fluent_astify",
+    "fluent_astify_message",
     "fluent_parse",
+    "fluent_parse_message",
     "fluent_serialize",
     "properties_parse",
     "properties_serialize",

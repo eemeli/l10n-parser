@@ -5,14 +5,12 @@
 from dataclasses import dataclass, field
 from typing import Generic, TypeVar
 
-from .message import Message
-
 M = TypeVar("M")
 """
 The metadata value type.
 """
 
-V = TypeVar("V", bound=str | Message)
+V = TypeVar("V")
 """
 The Message value type.
 """

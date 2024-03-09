@@ -5,6 +5,8 @@
 from textwrap import dedent
 from unittest import TestCase
 
+from fluent.syntax import ast as ftl
+
 from moz_l10n import (
     CatchallKey,
     Comment,
@@ -18,6 +20,7 @@ from moz_l10n import (
     SelectMessage,
     VariableRef,
     fluent_parse,
+    fluent_parse_message,
     fluent_serialize,
 )
 
@@ -26,17 +29,40 @@ from moz_l10n import (
 
 
 class TestPropertiesParser(TestCase):
+    def test_fluent_value(self):
+        source = dedent(
+            """\
+            key =
+                pre { $a ->
+                    [1] One
+                   *[2] Two
+                } mid { $b ->
+                   *[bb] BB
+                    [cc] CC
+                } post
+                .attr = foo
+            """
+        )
+        res = fluent_parse(source)
+        self.assertEqual(len(res.sections), 1)
+        self.assertEqual(len(res.sections[0].entries), 2)
+        self.assertEqual(res.sections[0].entries[0].id, ["key"])
+        self.assertIsInstance(res.sections[0].entries[0].value, ftl.Pattern)
+        self.assertEqual(res.sections[0].entries[1].id, ["key", "attr"])
+        self.assertIsInstance(res.sections[0].entries[1].value, ftl.Pattern)
+        self.assertEqual(fluent_serialize(res), source)
+
     def test_equality_same(self):
         source = 'progress = Progress: { NUMBER($num, style: "percent") }.'
-        res1 = fluent_parse(source)
-        res2 = fluent_parse(source)
+        res1 = fluent_parse(source, fluent_parse_message)
+        res2 = fluent_parse(source, fluent_parse_message)
         self.assertEqual(res1, res2)
 
     def test_equality_different_whitespace(self):
         source1 = b"foo = { $arg }"
         source2 = b"foo = {    $arg    }"
-        res1 = fluent_parse(source1)
-        res2 = fluent_parse(source2)
+        res1 = fluent_parse(source1, fluent_parse_message)
+        res2 = fluent_parse(source2, fluent_parse_message)
         self.assertEqual(res1, res2)
 
     def test_resource(self):
@@ -96,7 +122,8 @@ class TestPropertiesParser(TestCase):
                         }
                   }
                 """
-            )
+            ),
+            fluent_parse_message,
         )
         other = CatchallKey("other")
         entries = [
@@ -258,7 +285,7 @@ class TestPropertiesParser(TestCase):
         )
 
     def test_attr_comment(self):
-        res = fluent_parse("msg = body\n  .attr = value")
+        res = fluent_parse("msg = body\n  .attr = value", fluent_parse_message)
 
         res.sections[0].entries[1].comment = "comment1"
         self.assertEqual(
@@ -289,7 +316,7 @@ class TestPropertiesParser(TestCase):
         )
 
     def test_meta(self):
-        res = fluent_parse("one = foo\ntwo = bar")
+        res = fluent_parse("one = foo\ntwo = bar", fluent_parse_message)
         res.sections[0].entries[1].meta = [Metadata("a", 42), Metadata("b", False)]
         try:
             fluent_serialize(res)

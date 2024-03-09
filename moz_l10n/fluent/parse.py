@@ -2,20 +2,35 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from itertools import product
-from typing import cast
+from typing import cast, overload
 
 from fluent.syntax import FluentParser
 from fluent.syntax import ast as ftl
 
 from .. import message as msg
-from ..resource import Comment, Entry, Resource, Section
+from .. import resource as res
+
+
+@overload
+def fluent_parse(
+    source: bytes | str | ftl.Resource,
+    parse_message: None = None,
+) -> res.Resource[ftl.Pattern, None]: ...
+
+
+@overload
+def fluent_parse(
+    source: bytes | str | ftl.Resource,
+    parse_message: Callable[[ftl.Pattern], res.V],
+) -> res.Resource[res.V, None]: ...
 
 
 def fluent_parse(
     source: bytes | str | ftl.Resource,
-) -> Resource[msg.Message, None]:
+    parse_message: Callable[[ftl.Pattern], res.V] | None = None,
+) -> res.Resource[res.V, None]:
     """
     Parse a .ftl file into a message resource
 
@@ -31,12 +46,12 @@ def fluent_parse(
         source_str = source if isinstance(source, str) else source.decode("utf-8")
         fluent_res = FluentParser().parse(source_str)
 
-    entries: list[Entry[msg.Message, None] | Comment] = []
-    section = Section([], entries)
-    resource = Resource([section])
+    entries: list[res.Entry[res.V, None] | res.Comment] = []
+    section = res.Section([], entries)
+    resource = res.Resource([section])
     for entry in fluent_res.body:
         if isinstance(entry, ftl.Message) or isinstance(entry, ftl.Term):
-            entries.extend(patterns(entry))
+            entries.extend(patterns(entry, parse_message))
         elif isinstance(entry, ftl.ResourceComment):
             if entry.content:
                 resource.comment = (
@@ -47,13 +62,13 @@ def fluent_parse(
         elif isinstance(entry, ftl.GroupComment):
             if entries or section.comment:
                 entries = []
-                section = Section([], entries, comment=entry.content or "")
+                section = res.Section([], entries, comment=entry.content or "")
                 resource.sections.append(section)
             else:
                 section.comment = entry.content or ""
         elif isinstance(entry, ftl.Comment):
             if entry.content:
-                entries.append(Comment(entry.content))
+                entries.append(res.Comment(entry.content))
         else:  # Junk
             try:
                 message = entry.annotations[0].message
@@ -64,23 +79,26 @@ def fluent_parse(
 
 
 def patterns(
-    entry: ftl.Message | ftl.Term,
-) -> Generator[Entry[msg.Message, None], None, None]:
+    entry: ftl.Message | ftl.Term, parse_message: Callable[[ftl.Pattern], res.V] | None
+) -> Generator[res.Entry[res.V, None], None, None]:
+    message = parse_message or (lambda m: cast(res.V, m))
     id = entry.id.name
     if isinstance(entry, ftl.Term):
         id = "-" + id
     comment = entry.comment.content or "" if entry.comment else ""
     if entry.value:
-        yield Entry(id=[id], value=message(entry.value), comment=comment)
+        yield res.Entry(id=[id], value=message(entry.value), comment=comment)
         if comment:
             comment = ""
     for attr in entry.attributes:
-        yield Entry(id=[id, attr.id.name], value=message(attr.value), comment=comment)
+        yield res.Entry(
+            id=[id, attr.id.name], value=message(attr.value), comment=comment
+        )
         if comment:
             comment = ""
 
 
-def message(ftl_pattern: ftl.Pattern) -> msg.Message:
+def fluent_parse_message(ftl_pattern: ftl.Pattern) -> msg.Message:
     sel_data = find_selectors(ftl_pattern, [])
     selectors = [sd[0] for sd in sel_data]
     filter: list[Key | None] = [None] * len(selectors)
@@ -160,7 +178,7 @@ def message_key(key: Key) -> str | msg.CatchallKey:
 
 def find_selectors(
     pattern: ftl.Pattern,
-    res: list[tuple[msg.Expression, list[ftl.InlineExpression], set[Key]]],
+    result: list[tuple[msg.Expression, list[ftl.InlineExpression], set[Key]]],
 ) -> list[tuple[msg.Expression, list[ftl.InlineExpression], set[Key]]]:
     for el in pattern.elements:
         if isinstance(el, ftl.Placeable) and isinstance(
@@ -169,17 +187,17 @@ def find_selectors(
             ftl_sel = el.expression.selector
             keys = [variant_key(v) for v in el.expression.variants]
             msg_sel = select_expression(ftl_sel, keys)
-            prev = next((x for x in res if x[0] == msg_sel), None)
+            prev = next((x for x in result if x[0] == msg_sel), None)
             if prev:
                 _, ftl_list, key_set = prev
                 ftl_list.append(ftl_sel)
                 for key in keys:
                     key_set.add(key)
             else:
-                res.append((msg_sel, [ftl_sel], set(keys)))
+                result.append((msg_sel, [ftl_sel], set(keys)))
             for v in el.expression.variants:
-                find_selectors(v.value, res)
-    return res
+                find_selectors(v.value, result)
+    return result
 
 
 def select_expression(ftl_sel: ftl.InlineExpression, keys: list[Key]) -> msg.Expression:
