@@ -16,6 +16,7 @@ from .. import resource as res
 def fluent_serialize(
     resource: res.Resource[msg.Message | ftl.Pattern, res.M],
     serialize_metadata: Callable[[res.Metadata[res.M]], str | None] | None = None,
+    trim_comments: bool = False,
 ) -> str:
     """
     Serialize a resource as the contents of a Fluent FTL file.
@@ -30,13 +31,14 @@ def fluent_serialize(
     If the resource includes any metadata, a `serialize_metadata` callable must be provided
     to map each field into a comment value, or to discard it by returning an empty value.
     """
-    ftl_ast = fluent_astify(resource, serialize_metadata)
+    ftl_ast = fluent_astify(resource, serialize_metadata, trim_comments)
     return serialize(ftl_ast)
 
 
 def fluent_astify(
     resource: res.Resource[msg.Message | ftl.Pattern, res.M],
     serialize_metadata: Callable[[res.Metadata[res.M]], str | None] | None = None,
+    trim_comments: bool = False,
 ) -> ftl.Resource:
     """
     Transform a resource into a corresponding Fluent AST structure.
@@ -60,6 +62,8 @@ def fluent_astify(
             | res.Comment
         )
     ) -> str:
+        if trim_comments:
+            return ""
         cs = node.comment.rstrip()
         if not isinstance(node, res.Comment) and node.meta:
             if not serialize_metadata:
@@ -77,13 +81,14 @@ def fluent_astify(
         body.append(ftl.ResourceComment(res_comment))
     for idx, section in enumerate(resource.sections):
         section_comment = comment(section)
-        if idx != 0 or section_comment:
+        if not trim_comments and idx != 0 or section_comment:
             body.append(ftl.GroupComment(section_comment))
         cur: ftl.Message | ftl.Term | None = None
         cur_id = ""
         for entry in section.entries:
             if isinstance(entry, res.Comment):
-                body.append(ftl.Comment(entry.comment))
+                if not trim_comments:
+                    body.append(ftl.Comment(entry.comment))
                 cur = None
             else:
                 value = (

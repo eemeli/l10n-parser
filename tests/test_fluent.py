@@ -283,6 +283,57 @@ class TestFluent(TestCase):
                 """
             ),
         )
+        self.assertEqual(
+            fluent_serialize(res, trim_comments=True),
+            dedent(
+                """\
+                simple = A
+                expressions = A { $arg } B { msg.foo } C { -term(x: 42) }
+                functions = { NUMBER($arg) }{ FOO("bar", opt: "val") }
+                has-attr = ABC
+                    .attr = Attr
+                has-only-attr =
+                    .attr = Attr
+                single-sel =
+                    { NUMBER($num) ->
+                        [one] One
+                       *[other] Other
+                    }
+                two-sels =
+                    { NUMBER($a) ->
+                        [1]
+                            { $b ->
+                                [cc] pre One mid CC post
+                               *[bb] pre One mid BB post
+                            }
+                       *[2]
+                            { $b ->
+                                [cc] pre Two mid CC post
+                               *[bb] pre Two mid BB post
+                            }
+                    }
+                deep-sels =
+                    { NUMBER($a) ->
+                        [0]
+                            { NUMBER($b) ->
+                                [one] { "" }
+                               *[other] 0,x
+                            }
+                        [one]
+                            { NUMBER($b) ->
+                                [one] { "1,1" }
+                               *[other] 1,x
+                            }
+                       *[other]
+                            { NUMBER($b) ->
+                                [0] x,0
+                                [one] x,1
+                               *[other] x,x
+                            }
+                    }
+                """
+            ),
+        )
 
     def test_attr_comment(self):
         res = fluent_parse("msg = body\n  .attr = value", fluent_parse_message)
@@ -299,6 +350,9 @@ class TestFluent(TestCase):
                 """
             ),
         )
+        self.assertEqual(
+            fluent_serialize(res, trim_comments=True), "msg = body\n    .attr = value\n"
+        )
 
         res.sections[0].entries[0].comment = "comment0"
         self.assertEqual(
@@ -313,6 +367,9 @@ class TestFluent(TestCase):
                     .attr = value
                 """
             ),
+        )
+        self.assertEqual(
+            fluent_serialize(res, trim_comments=True), "msg = body\n    .attr = value\n"
         )
 
     def test_meta(self):
@@ -339,10 +396,10 @@ class TestFluent(TestCase):
                 """
             ),
         )
+        self.assertEqual(
+            fluent_serialize(res, trim_comments=True), "one = foo\ntwo = bar\n"
+        )
 
     def test_junk(self):
-        try:
+        with self.assertRaisesRegex(Exception, 'Expected token: "="'):
             fluent_parse("msg = value\n# Comment\nLine of junk")
-            raise Exception("Expected an error")
-        except Exception as e:
-            self.assertEqual(e.args, ('Expected token: "="',))

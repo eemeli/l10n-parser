@@ -12,6 +12,7 @@ def ini_serialize(
     resource: Resource[V, M],
     serialize_message: Callable[[V], str] | None = None,
     serialize_metadata: Callable[[Metadata[M]], str | None] | None = None,
+    trim_comments: bool = False,
 ) -> Generator[str, None, None]:
     """
     Serialize a resource as the contents of an .ini file.
@@ -36,6 +37,8 @@ def ini_serialize(
         comment: str, meta: list[Metadata[M]] | None, standalone: bool
     ) -> Generator[str, None, None]:
         nonlocal at_empty_line
+        if trim_comments:
+            return
         lines = comment.strip("\n").split("\n") if comment else []
         if meta:
             if not serialize_metadata:
@@ -47,7 +50,6 @@ def ini_serialize(
         if lines:
             if standalone and not at_empty_line:
                 yield "\n"
-                at_empty_line = True
             for line in lines:
                 if not line or line.isspace():
                     yield "#\n"
@@ -56,6 +58,7 @@ def ini_serialize(
                     yield f"#{line}" if line.startswith("#") else f"# {line}"
             if standalone:
                 yield "\n"
+                at_empty_line = True
 
     yield from comment(resource.comment, resource.meta, True)
     for section in resource.sections:

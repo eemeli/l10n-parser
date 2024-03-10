@@ -44,6 +44,10 @@ class TestIni(TestCase):
                 """
             ),
         )
+        self.assertEqual(
+            "".join(ini_serialize(res, trim_comments=True)),
+            "[Strings]\nTitleText = Some Title\n",
+        )
 
     def test_resource_comment(self):
         res = ini_parse(
@@ -84,6 +88,10 @@ class TestIni(TestCase):
                 TitleText = Some Title
                 """
             ),
+        )
+        self.assertEqual(
+            "".join(ini_serialize(res, trim_comments=True)),
+            "[Strings]\nTitleText = Some Title\n",
         )
 
     def test_junk(self):
@@ -140,6 +148,10 @@ class TestIni(TestCase):
                 """
             ),
         )
+        self.assertEqual(
+            "".join(ini_serialize(res, trim_comments=True)),
+            "[Strings]\nTitleText = Some Title\n  Continues\n",
+        )
 
     def test_trailing_comment(self):
         res = ini_parse(
@@ -176,6 +188,10 @@ class TestIni(TestCase):
 
                 """
             ),
+        )
+        self.assertEqual(
+            "".join(ini_serialize(res, trim_comments=True)),
+            "[Strings]\nTitleText = Some Title\n",
         )
 
     def test_empty_line_in_value(self):

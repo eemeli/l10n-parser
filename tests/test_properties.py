@@ -105,6 +105,22 @@ two_lines_triple = This line is one of two and ends in \\and still has another l
                 """
             ),
         )
+        self.assertEqual(
+            "".join(properties_serialize(res, trim_comments=True)),
+            dedent(
+                """\
+                1 = 1
+                2 = 2
+                3 = 3
+                4 = 4
+                5 = 5
+                6 = 6
+                7 = 7\\u0020
+                8 = 8\\u0020
+                9 = this is the first part of a continued line and here is the 2nd part
+                """
+            ),
+        )
 
     def test_bug121341(self):
         # port of xpcom/tests/unit/test_bug121341.js
@@ -241,3 +257,6 @@ two_lines_triple = This line is one of two and ends in \\and still has another l
             ),
         )
         self.assertEqual("".join(properties_serialize(res)), src)
+        self.assertEqual(
+            "".join(properties_serialize(res, trim_comments=True)), "foo = value\n"
+        )

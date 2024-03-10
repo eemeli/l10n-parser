@@ -15,6 +15,7 @@ def properties_serialize(
     encoding: Literal["iso-8859-1", "utf-8", "utf-16"] = "utf-8",
     serialize_message: Callable[[V], str] | None = None,
     serialize_metadata: Callable[[Metadata[M]], str | None] | None = None,
+    trim_comments: bool = False,
 ) -> Generator[str, None, None]:
     """
     Serialize a resource as the contents of a .properties file.
@@ -40,6 +41,8 @@ def properties_serialize(
         comment: str, meta: list[Metadata[M]] | None, standalone: bool
     ) -> Generator[str, None, None]:
         nonlocal at_empty_line
+        if trim_comments:
+            return
         lines = comment.strip("\n").split("\n") if comment else []
         if meta:
             if not serialize_metadata:
@@ -51,7 +54,6 @@ def properties_serialize(
         if lines:
             if standalone and not at_empty_line:
                 yield "\n"
-                at_empty_line = True
             for line in lines:
                 if not line or line.isspace():
                     yield "#\n"
@@ -60,6 +62,7 @@ def properties_serialize(
                     yield line if line.startswith("#") else f"# {line}"
             if standalone:
                 yield "\n"
+                at_empty_line = True
 
     yield from comment(resource.comment, resource.meta, True)
     for section in resource.sections:
@@ -82,7 +85,6 @@ def properties_serialize(
                 if unit.value.endswith(" ") and not unit.value.endswith("\\ "):
                     unit.value = unit.value[:-1] + "\\u0020"
                 yield unit.getoutput()
-                if at_empty_line:
-                    at_empty_line = False
+                at_empty_line = False
             else:
                 yield from comment(entry.comment, None, True)
