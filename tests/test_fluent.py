@@ -28,7 +28,7 @@ from moz_l10n import (
 # __import__("sys").modules["unittest.util"]._MAX_LENGTH = 999999999
 
 
-class TestPropertiesParser(TestCase):
+class TestFluent(TestCase):
     def test_fluent_value(self):
         source = dedent(
             """\

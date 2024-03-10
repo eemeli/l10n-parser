@@ -9,7 +9,7 @@ from unittest import TestCase
 from moz_l10n import Entry, Resource, Section, properties_parse, properties_serialize
 
 
-class TestPropertiesParser(TestCase):
+class TestProperties(TestCase):
     def testBackslashes(self):
         src = r"""one_line = This is one line
 two_line = This is the first \
