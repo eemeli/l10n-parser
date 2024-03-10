@@ -5,6 +5,7 @@ from .fluent import (
     fluent_parse_message,
     fluent_serialize,
 )
+from .ini import ini_parse, ini_serialize
 from .message import (
     CatchallKey,
     Declaration,
@@ -45,6 +46,8 @@ __all__ = [
     "fluent_parse",
     "fluent_parse_message",
     "fluent_serialize",
+    "ini_parse",
+    "ini_serialize",
     "properties_parse",
     "properties_serialize",
 ]
