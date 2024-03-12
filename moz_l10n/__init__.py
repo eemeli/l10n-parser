@@ -22,6 +22,7 @@ from .message import (
 )
 from .properties import properties_parse, properties_serialize
 from .resource import Comment, Entry, Metadata, Resource, Section
+from .transform import add_entries
 
 __all__ = [
     "CatchallKey",
@@ -41,6 +42,7 @@ __all__ = [
     "UnsupportedAnnotation",
     "UnsupportedStatement",
     "VariableRef",
+    "add_entries",
     "fluent_astify",
     "fluent_astify_message",
     "fluent_parse",
